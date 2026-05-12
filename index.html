@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Festa Junina</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f59e0b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./assets/images/logo-celular.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/images/logo-celular.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/images/logo-celular.png">
+    <link rel="shortcut icon" href="./assets/images/logo-celular.png" type="image/x-icon">
+    <meta name="msapplication-TileImage" content="./assets/images/logo-celular.png">
+    <meta property="og:image" content="./assets/images/festa-banner.svg">
+
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="https://em-content.zobj.net/source/apple/81/soft-ice-cream_1f366.png">
+    
+    <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        barlow: ['Barlow', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#f59e0b',
+                        dark: '#7c2d12'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<script>
+
+async function carregarShows() {
+
+    const container = document.getElementById('shows-container');
+
+    try {
+
+        const resposta = await fetch(
+            'https://festa-junina-shows.vercel.app/api/cantores'
+        );
+
+        const shows = await resposta.json();
+
+        container.innerHTML = '';
+
+        shows.forEach(show => {
+
+            const card = document.createElement('article');
+
+            card.className =
+                "bg-white rounded-[30px] p-6 shadow-sm border border-gray-100 flex flex-col";
+
+            card.innerHTML = `
+            
+                <img 
+                    src="${show.imagem_url}" 
+                    alt="${show.nome}" 
+                    class="w-full h-48 object-cover rounded-3xl mb-5"
+                >
+
+                <h3 class="text-xl font-bold mb-2">
+                    ${show.nome}
+                </h3>
+
+                <p class="text-gray-600 leading-relaxed mb-3">
+                    ${show.descricao}
+                </p>
+
+                <p class="text-primary text-xl font-black mb-6">
+                    ${Number(show.preco).toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                    })}
+                </p>
+
+                <button
+                    onclick="adicionarItemShow(
+                        '${show.id}',
+                        '${show.nome}',
+                        ${show.preco}
+                    )"
+                    class="mt-auto w-full bg-primary text-white py-3 rounded-2xl text-sm font-black shadow-md hover:bg-black transition-all"
+                >
+                    Comprar Ingresso
+                </button>
+            `;
+
+            container.appendChild(card);
+
+        });
+
+    } catch (erro) {
+
+        console.log(erro);
+
+        container.innerHTML = `
+            <div class="col-span-full text-center py-10">
+                <p class="text-red-500 font-bold">
+                    Erro ao carregar shows.
+                </p>
+            </div>
+        `;
+    }
+}
+
+carregarShows();
+
+</script>
+
+<body class="font-barlow text-gray-800 bg-gradient-to-br from-rose-50 via-white to-cyan-50">
+
+    <!-- ================= HEADER ================= -->
+    <header class="flex items-center justify-between px-6 mt-[5vh] sticky top-0 bg-white/90 backdrop-blur-md z-40 h-20 shadow-sm">
+        <figure>
+            <img src="./assets/images/logo.png" alt="Logo Festa Junina" class="w-[30vw] max-w-[160px] rounded-full shadow-lg" onerror="this.src='./assets/images/logo-sorvete.webp'">
+        </figure>
+
+        <button id="menuBtn" class="md:hidden text-3xl">☰</button>
+
+        <nav class="hidden md:block">
+            <ul class="flex gap-8 text-lg">
+                <li><a href="#cardapio" class="hover:text-primary transition font-semibold">Cardápio</a></li>
+                <li><a href="#shows" class="hover:text-primary transition font-semibold">Shows</a></li>
+                <li><a href="#jogos" class="hover:text-primary transition font-semibold">Jogos</a></li>
+                <li><a href="#contato" class="hover:text-primary transition font-semibold">Contato</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Menu Mobile -->
+    <div id="mobileMenu" class="fixed top-0 right-[-100%] w-[70%] h-full bg-white shadow-lg transition-all duration-300 p-8 md:hidden z-50">
+        <button id="closeBtn" class="text-2xl mb-6">✕</button>
+        <ul class="flex flex-col gap-6 text-lg font-bold">
+            <li><a href="#cardapio" onclick="closeMenu()">Cardápio</a></li>
+            <li><a href="#shows" onclick="closeMenu()">Shows</a></li>
+            <li><a href="#jogos" onclick="closeMenu()">Jogos</a></li>
+            <li><a href="#contato" onclick="closeMenu()">Contato</a></li>
+        </ul>
+    </div>
+
+    <script>
+        const mBtn = document.getElementById("menuBtn");
+        const cBtn = document.getElementById("closeBtn");
+        const mMenu = document.getElementById("mobileMenu");
+        mBtn.onclick = () => mMenu.style.right = "0";
+        cBtn.onclick = () => mMenu.style.right = "-100%";
+        function closeMenu() { mMenu.style.right = "-100%"; }
+    </script>
+
+    <!-- ================= BANNER ================= -->
+    <section class="text-center p-8 mt-10">
+        <div class="md:flex md:items-center md:justify-center md:gap-10 max-w-6xl mx-auto">
+            <article class="md:w-[45%] text-left">
+                <h1 class="text-3xl md:text-5xl font-black leading-tight">
+                    Arraiá Junino: comidas típicas, jogos e shows ao vivo
+                </h1>
+                <p class="mt-4 text-lg text-gray-600">Traga a família para o melhor arraiá com quadrilha, barracas típicas e programação especial.</p>
+                <a href="#cardapio" class="inline-block mt-8 px-8 py-4 border border-dark rounded-full text-lg font-bold hover:bg-primary hover:text-white transition duration-300">
+                    Veja o Arraiá
+                </a>
+            </article>
+            <figure class="md:w-[45%] mt-10 md:mt-0">
+                <img src="./assets/images/banner.png" alt="Banner Festa Junina" class="w-full mx-auto drop-shadow-2xl" onerror="this.src='./assets/images/festa-logo.svg'">
+            </figure>
+        </div>
+    </section>
+
+    <!-- ================= CARDÁPIO ================= -->
+    <section id="cardapio" class="max-w-6xl mx-auto mt-24 pt-12 pb-4 px-4">
+        <h2 class="text-3xl font-black mb-8 text-center">Cardápio Típico</h2>
+        <p class="max-w-2xl mx-auto text-center text-gray-600 mb-10">Sabores e comidas típicas da festa junina, com imagens e descrição do que você encontra nas barracas.</p>
+
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <article class="bg-white rounded-[30px] p-6 shadow-sm border border-gray-100">
+                <img src="./assets/images/milho.png" alt="Milho Assado" class="w-full h-48 object-cover rounded-3xl mb-5">
+                <h3 class="text-xl font-bold mb-2">Milho Assado</h3>
+                <p class="text-gray-600 leading-relaxed">Milho quente e doce preparado na hora, com manteiga e canela.</p>
+            </article>
+            <article class="bg-white rounded-[30px] p-6 shadow-sm border border-gray-100">
+                <img src="./assets/images/pipoca.png" alt="Pipoca Doce" class="w-full h-48 object-cover rounded-3xl mb-5">
+                <h3 class="text-xl font-bold mb-2">Pipoca Doce</h3>
+                <p class="text-gray-600 leading-relaxed">Pipoca crocante com açúcar, colorida e irresistível para toda a família.</p>
+            </article>
+            <article class="bg-white rounded-[30px] p-6 shadow-sm border border-gray-100">
+                <img src="./assets/images/pastel.png" alt="Pastel" class="w-full h-48 object-cover rounded-3xl mb-5">
+                <h3 class="text-xl font-bold mb-2">Pastel</h3>
+                <p class="text-gray-600 leading-relaxed">Pastel crocante recheado com queijo, carne e sabores típicos.</p>
+            </article>
+            <article class="bg-white rounded-[30px] p-6 shadow-sm border border-gray-100">
+                <img src="./assets/images/quentao.png" alt="Quentão" class="w-full h-48 object-cover rounded-3xl mb-5">
+                <h3 class="text-xl font-bold mb-2">Quentão</h3>
+                <p class="text-gray-600 leading-relaxed">Bebida quente com gengibre, açúcar mascavo e especiarias juninas.</p>
+            </article>
+            <article class="bg-white rounded-[30px] p-6 shadow-sm border border-gray-100">
+                <img src="./assets/images/bolo de milho.png" alt="Bolo de Milho" class="w-full h-48 object-cover rounded-3xl mb-5">
+                <h3 class="text-xl font-bold mb-2">Bolo de Milho</h3>
+                <p class="text-gray-600 leading-relaxed">Bolo fofinho de milho verde com toque de coco e manteiga.</p>
+            </article>
+            <article class="bg-white rounded-[30px] p-6 shadow-sm border border-gray-100">
+                <img src="./assets/images/cocada.png" alt="Cocada" class="w-full h-48 object-cover rounded-3xl mb-5">
+                <h3 class="text-xl font-bold mb-2">Cocada</h3>
+                <p class="text-gray-600 leading-relaxed">Doce cremoso de coco para adoçar ainda mais sua visita ao arraiá.</p>
+            </article>
+        </div>
+    </section>
+
+   
+   <!-- ================= SHOWS ================= -->
+<section id="shows" class="max-w-6xl mx-auto mt-24 pt-12 pb-4 px-4 bg-gradient-to-r from-orange-50 via-white to-yellow-50 rounded-[40px] shadow-sm border border-orange-100">
+
+    <div class="text-center mb-10">
+        <h2 class="text-3xl font-black">Shows</h2>
+        <p class="text-gray-600 mt-3">
+            Compre apenas para os shows e garanta sua entrada na festa.
+        </p>
+    </div>
+
+    <!-- CONTAINER DOS SHOWS -->
+    <div id="shows-container" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+        <!-- LOADING -->
+        <div class="col-span-full text-center py-10">
+            <p class="text-lg font-bold text-gray-500">
+                Carregando shows...
+            </p>
+        </div>
+
+    </div>
+</section>
+
+    <!-- ================= JOGOS ================= -->
+    <section id="jogos" class="max-w-6xl mx-auto mt-24 pt-12 pb-4 px-4">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-black">Jogos</h2>
+            <p class="text-gray-600 mt-3">Atividades para divertir as crianças e a família, sem cobrança no carrinho.</p>
+        </div>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <article class="bg-white rounded-[30px] p-6 shadow-sm border border-gray-100">
+                <img src="./assets/images/argola.png" alt="Jogo da Argola" class="w-full h-48 object-cover rounded-3xl mb-5">
+                <h3 class="text-xl font-bold mb-2">Jogo da Argola</h3>
+                <p class="text-gray-600 leading-relaxed">Tente acertar as argolas e ganhe brindes típicos.</p>
+            </article>
+            <article class="bg-white rounded-[30px] p-6 shadow-sm border border-gray-100">
+                <img src="./assets/images/pescaria.png" alt="Pescaria" class="w-full h-48 object-cover rounded-3xl mb-5">
+                <h3 class="text-xl font-bold mb-2">Pescaria</h3>
+                <p class="text-gray-600 leading-relaxed">Pesque os peixinhos e leve uma lembrança para casa.</p>
+            </article>
+            <article class="bg-white rounded-[30px] p-6 shadow-sm border border-gray-100">
+                <img src="./assets/images/correio.png" alt="Correio Elegante" class="w-full h-48 object-cover rounded-3xl mb-5">
+                <h3 class="text-xl font-bold mb-2">Correio Elegante</h3>
+                <p class="text-gray-600 leading-relaxed">Deixe recados carinhosos para os amigos e participe da brincadeira.</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- ================= CONTATO ================= -->
+    <section id="contato" class="max-w-6xl mx-auto mt-24 pt-12 pb-12 px-4 bg-dark text-white rounded-[30px] shadow-sm">
+        <div class="text-center">
+            <h2 class="text-3xl font-black mb-3">Contato</h2>
+            <p class="opacity-80 mb-6">Quer saber mais sobre o arraiá? Envie mensagem pelo WhatsApp ou visite o evento.</p>
+            <div class="grid gap-4 sm:grid-cols-3 text-left">
+                <div>
+                    <p class="font-bold">Localização</p>
+                    <p class="opacity-80">Praça do Forró, 120</p>
+                </div>
+                <div>
+                    <p class="font-bold">Telefone</p>
+                    <p class="opacity-80">(11) 94543-7097</p>
+                </div>
+                <div>
+                    <p class="font-bold">Horário</p>
+                    <p class="opacity-80">Sáb. e dom. das 16h às 23h</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   <script>
+
+    let carrinho = [];
+
+    // =========================
+    // ADICIONAR ITEM
+    // =========================
+    function adicionarItem(id, nome, preco) {
+
+        if (navigator.vibrate) navigator.vibrate(50);
+
+        const index = carrinho.findIndex(
+            item => item.id === id
+        );
+
+        if (index !== -1) {
+
+            carrinho[index].quantidade++;
+
+        } else {
+
+            carrinho.push({
+                id,
+                nome,
+                preco,
+                quantidade: 1
+            });
+        }
+
+        atualizarCarrinho();
+    }
+
+    // =========================
+    // SHOWS
+    // =========================
+    function adicionarItemShow(id, nome, preco) {
+        adicionarItem(id, nome, preco);
+    }
+
+    // =========================
+    // ATUALIZAR CARRINHO
+    // =========================
+    function atualizarCarrinho() {
+
+        localStorage.setItem(
+            'haruy_carrinho',
+            JSON.stringify(carrinho)
+        );
+
+        const total = carrinho.reduce(
+            (acc, item) =>
+                acc + (item.preco * item.quantidade),
+            0
+        );
+
+        const formatado = total.toLocaleString(
+            'pt-BR',
+            {
+                style: 'currency',
+                currency: 'BRL'
+            }
+        );
+
+        document.getElementById(
+            'carrinho-total'
+        ).innerText = formatado;
+
+        document.getElementById(
+            'modal-carrinho-total'
+        ).innerText = formatado;
+
+        if (carrinho.length > 0) {
+
+            document
+                .getElementById('carrinho-footer')
+                .classList.remove('translate-y-full');
+
+        } else {
+
+            document
+                .getElementById('carrinho-footer')
+                .classList.add('translate-y-full');
+        }
+
+        renderizarItensModal();
+    }
+
+    // =========================
+    // RENDERIZAR MODAL
+    // =========================
+    function renderizarItensModal() {
+
+        const container =
+            document.getElementById(
+                'carrinho-itens-container'
+            );
+
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        carrinho.forEach(item => {
+
+            const subTotal =
+                (item.preco * item.quantidade)
+                .toLocaleString(
+                    'pt-BR',
+                    {
+                        style: 'currency',
+                        currency: 'BRL'
+                    }
+                );
+
+            const div =
+                document.createElement('div');
+
+            div.className =
+                "flex justify-between items-center bg-gray-50 p-4 rounded-xl";
+
+            div.innerHTML = `
+            
+                <div class="flex-1 pr-4">
+
+                    <h4 class="font-bold text-dark">
+                        ${item.nome}
+                    </h4>
+
+                    <p class="text-primary font-black mt-1">
+                        ${subTotal}
+                    </p>
+
+                </div>
+
+                <div class="flex items-center gap-3 bg-white p-2 rounded-xl shadow-sm">
+
+                    <button
+                        onclick="alterarQtd('${item.id}', -1)"
+                        class="w-8 h-8 font-black text-xl hover:text-primary"
+                    >
+                        -
+                    </button>
+
+                    <span class="font-black text-lg w-4 text-center">
+                        ${item.quantidade}
+                    </span>
+
+                    <button
+                        onclick="alterarQtd('${item.id}', 1)"
+                        class="w-8 h-8 font-black text-xl hover:text-primary"
+                    >
+                        +
+                    </button>
+
+                </div>
+            `;
+
+            container.appendChild(div);
+        });
+    }
+
+    // =========================
+    // ALTERAR QUANTIDADE
+    // =========================
+    function alterarQtd(id, delta) {
+
+        const index = carrinho.findIndex(
+            item => item.id === id
+        );
+
+        if (index !== -1) {
+
+            carrinho[index].quantidade += delta;
+
+            if (carrinho[index].quantidade <= 0) {
+                carrinho.splice(index, 1);
+            }
+
+            if (carrinho.length === 0) {
+                fecharModalCarrinho();
+            }
+
+            atualizarCarrinho();
+        }
+    }
+
+    // =========================
+    // MODAIS
+    // =========================
+    function abrirModalCarrinho() {
+
+        document
+            .getElementById('carrinho-modal')
+            .classList.remove(
+                'opacity-0',
+                'pointer-events-none'
+            );
+
+        setTimeout(() => {
+
+            document
+                .getElementById(
+                    'carrinho-modal-content'
+                )
+                .classList.remove('translate-y-full');
+
+        }, 10);
+    }
+
+    function fecharModalCarrinho() {
+
+        document
+            .getElementById(
+                'carrinho-modal-content'
+            )
+            .classList.add('translate-y-full');
+
+        setTimeout(() => {
+
+            document
+                .getElementById('carrinho-modal')
+                .classList.add(
+                    'opacity-0',
+                    'pointer-events-none'
+                );
+
+        }, 300);
+    }
+
+    // =========================
+    // FINALIZAR PEDIDO
+    // =========================
+    function fecharPedido() {
+
+        if (carrinho.length === 0) return;
+
+        const btn =
+            document.getElementById(
+                'btn-fechar-pedido'
+            );
+
+        btn.innerText = "LOCALIZANDO...";
+
+        navigator.geolocation.getCurrentPosition(
+
+            (pos) => {
+
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+
+                btn.innerText =
+                    "Fechar Pedido (Usar GPS)";
+
+                alert(
+                    `Pedido Finalizado!\nLocalização: ${lat.toFixed(4)}, ${lng.toFixed(4)}`
+                );
+
+                carrinho = [];
+
+                atualizarCarrinho();
+
+                fecharModalCarrinho();
+            },
+
+            () => {
+
+                btn.innerText =
+                    "Fechar Pedido (Usar GPS)";
+
+                alert("Pedido Finalizado!");
+
+                carrinho = [];
+
+                atualizarCarrinho();
+
+                fecharModalCarrinho();
+            }
+        );
+    }
+
+    // =========================
+    // INICIALIZAR
+    // =========================
+    function inicializar() {
+
+        const salvo =
+            localStorage.getItem(
+                'haruy_carrinho'
+            );
+
+        if (salvo) {
+
+            carrinho = JSON.parse(salvo);
+
+            atualizarCarrinho();
+        }
+    }
+
+    inicializar();
+
+    // =========================
+    // SERVICE WORKER
+    // =========================
+    if ('serviceWorker' in navigator) {
+
+        window.addEventListener('load', () => {
+
+            navigator.serviceWorker
+                .register('./sw.js')
+
+                .then(reg =>
+                    console.log(
+                        "Service Worker Registrado!",
+                        reg
+                    )
+                )
+
+                .catch(err =>
+                    console.log(
+                        "Erro no Service Worker",
+                        err
+                    )
+                );
+        });
+    }
+
+    // =========================
+    // CARREGAR SHOWS API
+    // =========================
+    async function carregarShows() {
+
+        const container =
+            document.getElementById(
+                'shows-container'
+            );
+
+        if (!container) return;
+
+        try {
+
+            const resposta = await fetch(
+                'https://festa-junina-shows.vercel.app/api/cantores'
+            );
+
+            console.log(
+                'STATUS API:',
+                resposta.status
+            );
+
+            const shows =
+                await resposta.json();
+
+            console.log('SHOWS:', shows);
+
+            container.innerHTML = '';
+
+            if (
+                !shows ||
+                shows.length === 0
+            ) {
+
+                container.innerHTML = `
+                
+                    <div class="col-span-full text-center py-10">
+                        <p class="text-red-500 font-bold">
+                            Nenhum show encontrado.
+                        </p>
+                    </div>
+                `;
+
+                return;
+            }
+
+            shows.forEach(show => {
+
+                const card =
+                    document.createElement(
+                        'article'
+                    );
+
+                card.className =
+                    "bg-white rounded-[30px] p-6 shadow-sm border border-gray-100 flex flex-col";
+
+                card.innerHTML = `
+                
+                    <img 
+                        src="${show.imagem_url}" 
+                        alt="${show.nome}" 
+                        class="w-full h-48 object-cover rounded-3xl mb-5"
+                    >
+
+                    <h3 class="text-xl font-bold mb-2">
+                        ${show.nome}
+                    </h3>
+
+                    <p class="text-gray-600 leading-relaxed mb-3">
+                        ${show.descricao}
+                    </p>
+
+                    <p class="text-primary text-xl font-black mb-6">
+                        ${Number(show.preco).toLocaleString(
+                            'pt-BR',
+                            {
+                                style: 'currency',
+                                currency: 'BRL'
+                            }
+                        )}
+                    </p>
+
+                    <button
+                        onclick="adicionarItemShow(
+                            '${show.id}',
+                            '${show.nome}',
+                            ${show.preco}
+                        )"
+                        class="mt-auto w-full bg-primary text-white py-3 rounded-2xl text-sm font-black shadow-md hover:bg-black transition-all"
+                    >
+                        Comprar Ingresso
+                    </button>
+                `;
+
+                container.appendChild(card);
+            });
+
+        } catch (erro) {
+
+            console.error(
+                'ERRO API:',
+                erro
+            );
+
+            container.innerHTML = `
+            
+                <div class="col-span-full text-center py-10">
+                    <p class="text-red-500 font-bold text-xl">
+                        Erro ao carregar shows.
+                    </p>
+                </div>
+            `;
+        }
+    }
+
+    carregarShows();
+
+</script>
+
+    <!-- ================= MODAIS ================= -->
+    <div id="detalhes-modal" class="fixed inset-0 bg-black/70 z-[80] flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 px-4">
+        <div class="bg-white w-full max-w-[400px] rounded-[30px] overflow-hidden transform scale-95 transition-transform duration-300 relative flex flex-col" id="detalhes-modal-content">
+            <button onclick="fecharModalDetalhes()" class="absolute top-4 right-4 bg-white/80 backdrop-blur-md text-dark w-10 h-10 rounded-full flex justify-center items-center font-bold text-2xl shadow-sm z-10 hover:text-primary active:scale-90 transition-all">&times;</button>
+            <div class="w-full h-[280px] bg-gray-50 flex justify-center items-center p-8 relative">
+                <img id="detalhes-img" src="" alt="Produto" class="w-full h-full object-contain drop-shadow-xl relative z-10 transition-transform duration-500 hover:scale-105">
+            </div>
+            <div class="p-6">
+                <h2 id="detalhes-nome" class="text-3xl font-black text-dark mb-1 leading-tight tracking-tight">Nome</h2>
+                <p id="detalhes-preco" class="text-2xl font-black text-primary mb-4 drop-shadow-sm">R$ 0,00</p>
+                <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                    <p id="detalhes-desc" class="text-gray-600 text-sm leading-relaxed font-medium">Descrição...</p>
+                </div>
+                <button id="detalhes-btn-add" onclick="" class="w-full bg-primary text-white py-4 rounded-xl text-[17px] font-extrabold shadow-md hover:bg-black active:scale-[0.98] transition-all outline-none flex justify-center items-center gap-2">
+                    Adicionar ao Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="carrinho-footer" class="fixed bottom-0 left-0 w-full bg-primary text-white p-4 z-50 shadow-lg transform translate-y-full transition-transform duration-300 flex justify-between items-center cursor-pointer" onclick="abrirModalCarrinho()">
+        <div>
+            <p class="text-sm font-medium">Resumo do Pedido</p>
+            <p class="text-xl font-bold">Total: <span id="carrinho-total">R$ 0,00</span></p>
+        </div>
+        <button class="bg-white text-primary px-4 py-2 rounded-lg font-bold shadow-md active:scale-95 transition-all">Ver Carrinho</button>
+    </div>
+
+    <div id="carrinho-modal" class="fixed inset-0 bg-black/60 z-[60] flex flex-col justify-end sm:justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white w-full sm:w-[500px] h-[85vh] sm:h-auto sm:max-h-[85vh] rounded-t-3xl sm:rounded-2xl flex flex-col transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300" id="carrinho-modal-content">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-dark">Seu Carrinho</h2>
+                <button onclick="fecharModalCarrinho()" class="text-3xl font-bold text-muted hover:text-dark focus:outline-none">&times;</button>
+            </div>
+            <div id="carrinho-itens-container" class="p-5 flex-1 overflow-y-auto flex flex-col gap-4"></div>
+            <div class="p-5 border-t bg-gray-50 rounded-b-3xl sm:rounded-b-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-lg font-bold">Total do Pedido:</span>
+                    <span id="modal-carrinho-total" class="text-2xl font-black text-primary">R$ 0,00</span>
+                </div>
+                <button onclick="fecharPedido()" id="btn-fechar-pedido" class="w-full bg-primary text-white py-3 rounded-xl text-lg font-bold shadow-lg hover:bg-black active:scale-95 transition-all">
+                    Fechar Pedido (Usar GPS)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="mt-24 text-center py-12 px-4 text-sm text-white bg-dark">
+        <h3 class="text-xl font-bold mb-4">Arraiá Junino 🎉</h3>
+        <p class="opacity-80">📍 Praça do Forró, 120 - Centro</p>
+        <p class="opacity-80">📞 Whatsapp: (11) 94543-7097</p>
+        <p class="opacity-80">🕛 Sábado e domingo, das 16h às 23h</p>
+    </footer>
+
+
+    <!-- BOTÃO WHATSAPP -->
+    <a href="https://wa.me/5511945437097" target="_blank" class="fixed right-5 bottom-24 lg:bottom-10 lg:right-10 z-40 hover:scale-110 transition-transform">
+        <img src="./assets/images/whatsapp.webp" alt="link-whatsapp" class="h-14 w-14 drop-shadow-lg" onerror="this.src='../img/whatsapp.png'">
+    </a>
+
+</body>
+</html>
